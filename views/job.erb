@@ -1,0 +1,8 @@
+<style type='text/css'>
+html, body { background-color: white; color: black; }
+</style>
+<h1><%= job %></h1>
+
+<a href="/jobs/<%= job %>/run">Build</a>
+<hr/>
+Last build: <a href="/jobs/<%= job %>/<%= last_build %>">#<%= last_build %></a>

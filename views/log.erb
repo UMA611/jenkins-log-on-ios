@@ -1,0 +1,73 @@
+<style type='text/css'>
+html, body { background-color: black; color: white; }
+#log{ margin-top: 36px; width: 320px; }
+#header { position: fixed; top: 0; left: 0; width: 100%; height: 32px; background-color: white; font-family: Arial, Arial, Helvetica, sans-serif; font-size: 12px; }
+#header .title { font-weight: bold; text-align: center; width: 100%; height: 32px; line-height: 32px; color: black; position: relative; }
+#header a { color: black; text-decoration: none; border: 1px solid black; padding: 2px 6px; margin: 6px; display: block; position: absolute; top: 0;}
+#back-button { left: 0; }
+#build-button { right: 0; }
+</style>
+<div id="header">
+  <div class="title"><%= job %></div>
+<a href="/jobs/<%= job %>/" id="back-button">Back</a>
+<a href="/jobs/<%= job %>/run" id="build-button">Build</a>
+</div>
+
+<pre id="log">loading</pre>
+
+<script type='text/javascript'>
+var ansispan = function (str) {
+  return str.replace(/\033\[([0-9;]*)m/g, function(dummy,seq) {
+    console.log(seq);
+    if(seq == '') {
+      return "</span>";
+    }
+
+    var result = ''
+    seq.split(";").forEach(function(s) {
+      result += ansispan.seqs[s];
+    });
+    return result;
+  });
+};
+
+ansispan.seqs = {
+  '30': "<span style='color: black'>",
+  '31': "<span style='color: red'>",
+  '32': "<span style='color: #00ff00'>",
+  '33': "<span style='color: yellow'>",
+  '35': "<span style='color: #ff00ff'>",
+  '36': "<span style='color: cyan'>",
+  '37': "<span style='color: white'>",
+
+  '0': "</span></i></b>",
+  '39': "</span></i></b>",
+  '1': "<b>",
+  '22': "</b>",
+  '3': "<i>",
+  '23': "</i>",
+
+};
+
+  if (!window.WebSocket)
+    alert("WebSocket not supported by this browser");
+  
+  $(document).ready(function(){
+    var location = 'ws://'+document.location.hostname.toString()+':'+document.location.port.toString()+'/log?build=<%= build %>&job=<%= job %>'
+    var ws = new WebSocket(location);
+    ws.onopen = function(){
+      $('#log').html("");
+    };
+    ws.onmessage = function(m) {
+      var bottom = window.document.height - window.scrollY - window.innerHeight;
+      $('#log').append(ansispan(escaped_html(m.data)));
+      if(bottom < 64) {
+        window.scroll(window.scrollX, window.document.height - window.innerHeight);
+      }
+    };
+    ws.onclose = function(m) {
+      ws = undefined;
+      $('#log').append("<div class=\"error\">Disconnected</div>");
+    };
+  });
+</script>
